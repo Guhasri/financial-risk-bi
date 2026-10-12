@@ -1,0 +1,37 @@
+{
+  "started_at": "2026-10-12T18:44:31.827579+00:00",
+  "steps": {
+    "preprocess": {
+      "seconds": 9.3,
+      "clean_rows": 283726
+    },
+    "train": {
+      "skipped": true,
+      "selected_model": "RandomForest + SMOTE"
+    },
+    "score": {
+      "seconds": 3.1,
+      "risk_bands": {
+        "Low": 283220,
+        "High": 448,
+        "Medium": 58
+      },
+      "anomalies_flagged": 40408
+    },
+    "agent": {
+      "skipped": true
+    },
+    "bi_tables": {
+      "seconds": 3.8,
+      "fact_rows": 283726
+    }
+  },
+  "reconciliation": {
+    "fact_rows_equal_clean_rows": true,
+    "fraud_count_clean": 473,
+    "fraud_count_fact": 473,
+    "fraud_counts_match": true
+  },
+  "finished_at": "2026-10-12T18:44:49.539227+00:00",
+  "total_seconds": 17.7
+}

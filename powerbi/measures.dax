@@ -1,0 +1,173 @@
+// ============================================================================
+// Financial Risk Intelligence System — Power BI DAX measures
+// ----------------------------------------------------------------------------
+// HOW TO USE
+//   In Power BI Desktop, select the FactTransactions table in the Fields pane,
+//   then for each block below: Home > New measure, delete the auto text, and
+//   paste one measure (the part after the first "=" belongs on the right side;
+//   paste the WHOLE line including the name). Repeat per measure.
+//
+//   You can also paste groups — each measure is a separate statement.
+//
+// TABLE NAMES assumed (rename in Power Query if yours differ):
+//   FactTransactions   <- fact_transactions.csv
+//   FactAIInsights     <- AI_Risk_Insights.csv
+//   DimDate            <- dim_date.csv
+//   DimRiskBand        <- dim_risk_band.csv
+//   DimReviewStatus    <- dim_review_status.csv
+//   DimPriority        <- dim_priority.csv
+//   ModelMetrics       <- model_metrics.csv
+// ============================================================================
+
+
+// ---------------------------------------------------------------------------
+// 1. CORE KPI MEASURES (Part A — Financial Transaction BI)
+// ---------------------------------------------------------------------------
+
+Total Transactions = COUNTROWS ( FactTransactions )
+
+Total Amount = SUM ( FactTransactions[amount] )
+
+Average Amount = AVERAGE ( FactTransactions[amount] )
+
+Fraud Count =
+CALCULATE ( COUNTROWS ( FactTransactions ), FactTransactions[actual_class] = 1 )
+
+Genuine Count =
+CALCULATE ( COUNTROWS ( FactTransactions ), FactTransactions[actual_class] = 0 )
+
+Fraud Rate % =
+DIVIDE ( [Fraud Count], [Total Transactions] )
+
+Avg Amount (Fraud) =
+CALCULATE ( AVERAGE ( FactTransactions[amount] ), FactTransactions[actual_class] = 1 )
+
+Avg Amount (Genuine) =
+CALCULATE ( AVERAGE ( FactTransactions[amount] ), FactTransactions[actual_class] = 0 )
+
+
+// ---------------------------------------------------------------------------
+// 2. RISK MEASURES (Part B — AI Risk Intelligence)
+// ---------------------------------------------------------------------------
+
+High Risk Count =
+CALCULATE ( COUNTROWS ( FactTransactions ), FactTransactions[risk_band] = "High" )
+
+Medium Risk Count =
+CALCULATE ( COUNTROWS ( FactTransactions ), FactTransactions[risk_band] = "Medium" )
+
+Low Risk Count =
+CALCULATE ( COUNTROWS ( FactTransactions ), FactTransactions[risk_band] = "Low" )
+
+Anomaly Count =
+CALCULATE ( COUNTROWS ( FactTransactions ), FactTransactions[anomaly_flag] = 1 )
+
+Average Risk Score = AVERAGE ( FactTransactions[risk_score] )
+
+// Risk Concentration = share of High-risk transactions in the current filter
+// context (e.g. per hour / per day when placed on a time axis).
+Risk Concentration =
+DIVIDE ( [High Risk Count], [Total Transactions] )
+
+
+// ---------------------------------------------------------------------------
+// 3. INVESTIGATION PRIORITY (from the AI agent output)
+// ---------------------------------------------------------------------------
+
+High Priority Count =
+CALCULATE ( COUNTROWS ( FactAIInsights ), FactAIInsights[investigation_priority] = "HIGH" )
+
+Medium Priority Count =
+CALCULATE ( COUNTROWS ( FactAIInsights ), FactAIInsights[investigation_priority] = "MEDIUM" )
+
+Low Priority Count =
+CALCULATE ( COUNTROWS ( FactAIInsights ), FactAIInsights[investigation_priority] = "LOW" )
+
+Transactions Investigated by Agent = COUNTROWS ( FactAIInsights )
+
+
+// ---------------------------------------------------------------------------
+// 4. REVIEW STATUS & FLAG MEASURES (simulated workflow — label as such)
+// ---------------------------------------------------------------------------
+
+Flagged Count =
+CALCULATE (
+    COUNTROWS ( FactTransactions ),
+    FactTransactions[review_status] <> "Not flagged"
+)
+
+Flag Rate % =
+DIVIDE ( [Flagged Count], [Total Transactions] )
+
+Confirmed Fraud Count =
+CALCULATE ( COUNTROWS ( FactTransactions ), FactTransactions[review_status] = "Confirmed Fraud" )
+
+Under Review Count =
+CALCULATE ( COUNTROWS ( FactTransactions ), FactTransactions[review_status] = "Under Review" )
+
+Cleared Count =
+CALCULATE ( COUNTROWS ( FactTransactions ), FactTransactions[review_status] = "Cleared" )
+
+// Escalation Rate = of flagged items, the share escalated to Confirmed Fraud.
+Escalation Rate % =
+DIVIDE ( [Confirmed Fraud Count], [Flagged Count] )
+
+
+// ---------------------------------------------------------------------------
+// 5. EFFECTIVE RISK EXPOSURE
+//    Money at risk above the threshold, minus what has already been cleared.
+//    Uses a What-if parameter 'Risk Threshold' (see build guide §6) so the
+//    audience can move the cut-off live. If you did not create the parameter,
+//    replace [Risk Threshold Value] with a constant like 0.70.
+// ---------------------------------------------------------------------------
+
+Gross Exposure =
+CALCULATE (
+    [Total Amount],
+    FILTER ( FactTransactions, FactTransactions[risk_score] >= [Risk Threshold Value] )
+)
+
+Cleared Exposure =
+CALCULATE (
+    [Total Amount],
+    FILTER (
+        FactTransactions,
+        FactTransactions[risk_score] >= [Risk Threshold Value]
+            && FactTransactions[review_status] = "Cleared"
+    )
+)
+
+Effective Risk Exposure =
+[Gross Exposure] - [Cleared Exposure]
+
+
+// ---------------------------------------------------------------------------
+// 6. WHAT-IF PARAMETER HELPER
+//    Create a numeric What-if parameter named "Risk Threshold" (0 to 1,
+//    step 0.05). Power BI auto-creates a table 'Risk Threshold' with a column
+//    'Risk Threshold[Risk Threshold]'. This measure reads its selected value.
+// ---------------------------------------------------------------------------
+
+Risk Threshold Value =
+SELECTEDVALUE ( 'Risk Threshold'[Risk Threshold], 0.70 )
+
+
+// ---------------------------------------------------------------------------
+// 7. MODEL METRIC CARDS (from ModelMetrics table — metric/value pairs)
+//    Use these for the "Model Performance" cards on the AI page.
+// ---------------------------------------------------------------------------
+
+Model Precision =
+CALCULATE ( MAX ( ModelMetrics[value] ), ModelMetrics[metric] = "Precision" )
+
+Model Recall =
+CALCULATE ( MAX ( ModelMetrics[value] ), ModelMetrics[metric] = "Recall" )
+
+Model F1 =
+CALCULATE ( MAX ( ModelMetrics[value] ), ModelMetrics[metric] = "F1 Score" )
+
+Model AUC ROC =
+CALCULATE ( MAX ( ModelMetrics[value] ), ModelMetrics[metric] = "AUC-ROC" )
+
+Model AUC PR =
+CALCULATE ( MAX ( ModelMetrics[value] ), ModelMetrics[metric] = "AUC-PR" )

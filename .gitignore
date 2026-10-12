@@ -1,0 +1,30 @@
+# --- Secrets ---
+.env
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# --- Virtual environment ---
+.venv/
+venv/
+
+# --- Large raw data (keep out of git; ship via zip) ---
+data/raw/*.csv
+
+# --- Generated artifacts (reproducible via the pipeline) ---
+data/processed/*.csv
+data/output/*.csv
+models/*.joblib
+reports/*.png
+reports/*.json
+
+# --- OS ---
+.DS_Store
+
+# --- Power BI local build output ---
+powerbi/*.pbix
+powerbi/.pbi/
