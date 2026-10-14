@@ -1,28 +1,49 @@
 {
-  "started_at": "2026-10-12T18:44:31.827579+00:00",
+  "started_at": "2026-10-13T01:27:39.342062+00:00",
   "steps": {
     "preprocess": {
-      "seconds": 9.3,
+      "seconds": 22.5,
       "clean_rows": 283726
     },
     "train": {
-      "skipped": true,
-      "selected_model": "RandomForest + SMOTE"
+      "seconds": 151.4,
+      "selected_model": "RandomForest + SMOTE",
+      "metrics": {
+        "model": "RandomForest + SMOTE",
+        "precision": 0.9367088607594937,
+        "recall": 0.7789473684210526,
+        "f1": 0.8505747126436781,
+        "auc_roc": 0.9736747342221859,
+        "auc_pr": 0.8297566013649625,
+        "confusion_matrix": {
+          "true_negative": 56646,
+          "false_positive": 5,
+          "false_negative": 21,
+          "true_positive": 74
+        },
+        "threshold": 0.5
+      }
     },
     "score": {
-      "seconds": 3.1,
+      "seconds": 7.3,
       "risk_bands": {
-        "Low": 283220,
+        "Low": 283227,
         "High": 448,
-        "Medium": 58
+        "Medium": 51
       },
       "anomalies_flagged": 40408
     },
     "agent": {
-      "skipped": true
+      "seconds": 2.7,
+      "insights": 499,
+      "engine": "offline-template",
+      "priorities": {
+        "HIGH": 453,
+        "MEDIUM": 46
+      }
     },
     "bi_tables": {
-      "seconds": 3.8,
+      "seconds": 9.2,
       "fact_rows": 283726
     }
   },
@@ -32,6 +53,6 @@
     "fraud_count_fact": 473,
     "fraud_counts_match": true
   },
-  "finished_at": "2026-10-12T18:44:49.539227+00:00",
-  "total_seconds": 17.7
+  "finished_at": "2026-10-13T01:30:56.300712+00:00",
+  "total_seconds": 197.0
 }
